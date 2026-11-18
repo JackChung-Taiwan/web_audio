@@ -30,6 +30,7 @@ export function createVisualizerFX(THREE, parent, initialTheme) {
     });
     const object = loop ? new THREE.LineLoop(geometry, material) : new THREE.Line(geometry, material);
     object.frustumCulled = false;
+    object.userData.baseOpacity = opacity;
     track(geometry, material);
     register(object);
     return { object, geometry, positions, opacity };
@@ -45,6 +46,7 @@ export function createVisualizerFX(THREE, parent, initialTheme) {
     });
     const object = new THREE.LineSegments(geometry, material);
     object.frustumCulled = false;
+    object.userData.baseOpacity = opacity;
     track(geometry, material);
     register(object);
     return { object, geometry, positions, opacity };
@@ -110,6 +112,7 @@ export function createVisualizerFX(THREE, parent, initialTheme) {
     });
     const obj = new THREE.Points(geometry, material);
     obj.frustumCulled = false;
+    obj.userData.baseOpacity = .85;
     register(obj); track(geometry, material);
     extras = { n, seed, positions, geometry };
   }
@@ -282,7 +285,7 @@ export function createVisualizerFX(THREE, parent, initialTheme) {
   function setBrightness(v) {
     brightness = clamp(Number(v), .15, 1.5);
     for (const item of items) {
-      if (item.material) item.material.opacity = clamp(brightness, .1, 1.5) * (item.userData.baseOpacity || 1);
+      if (item.material) item.material.opacity = clamp(brightness * (item.userData.baseOpacity || 1), .04, 1);
     }
   }
   function dispose() { clear(); parent.remove(group); }
