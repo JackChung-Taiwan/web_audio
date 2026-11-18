@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#10172d">
+<title>SoundScape Lab｜Web Audio 3D 音景創作</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,"Noto Sans TC",system-ui,sans-serif;--bg:#0b1020;--card:#151d32;--line:#2b3550;--text:#edf3ff;--muted:#9aa9c6;--blue:#77a8ff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#182747,#0b1020 55%);color:var(--text)}
+header{max-width:1440px;margin:auto;padding:18px 24px;display:flex;align-items:center;gap:12px;justify-content:space-between}
+header h1{font-size:22px;margin:0;letter-spacing:.3px}header small{color:var(--muted)}.brand{display:flex;align-items:center;gap:12px}.logo{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,#7567ff,#3abfe9);font-size:25px}
+.pill{border:1px solid #375071;border-radius:99px;padding:7px 12px;color:#a8dbff;font-size:12px}
+main{max-width:1440px;margin:auto;padding:0 24px 28px;display:grid;grid-template-columns:minmax(0,1fr) 345px;gap:16px}
+.panel{border:1px solid var(--line);background:rgba(19,28,49,.94);border-radius:18px;overflow:hidden;box-shadow:0 12px 30px #0003}
+.hero{padding:15px;display:flex;justify-content:space-between;align-items:center;gap:12px}.hero h2{font-size:16px;margin:0}.hero p{color:var(--muted);font-size:12px;margin:6px 0 0}
+.visual{position:relative;margin:0 15px 15px;border-radius:15px;overflow:hidden;background:#080d19;border:1px solid #31405b;height:min(58vh,580px);min-height:330px}
+#scene{width:100%;height:100%;display:block}.overlay{position:absolute;left:16px;top:15px;pointer-events:none;background:#080f24ab;border:1px solid #5473a24f;border-radius:12px;padding:10px 13px;max-width:65%}.overlay strong{font-size:15px}.overlay small{display:block;margin-top:5px;color:#b8c8dc}
+.bottombar{position:absolute;bottom:14px;left:14px;right:14px;display:flex;justify-content:space-between;gap:8px;align-items:center;pointer-events:none}.bottombar span{background:#070d19b6;padding:9px;border-radius:9px;color:#b7c9dc;font-size:12px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}button,.fakebtn,select{background:#253657;color:#ecf4ff;border:1px solid #45618b;border-radius:10px;padding:10px 13px;cursor:pointer;font:inherit;font-size:13px}button:hover,.fakebtn:hover{background:#344d76}button.primary{background:linear-gradient(115deg,#516afa,#377acb);border-color:#697cff;font-weight:700}button:disabled{opacity:.5;cursor:wait}
+.side{display:flex;flex-direction:column;gap:14px}.section{padding:17px}.section h3{font-size:15px;margin:0 0 13px}.section p{font-size:12px;color:var(--muted);line-height:1.6;margin:8px 0}
+textarea{display:block;width:100%;min-height:90px;resize:vertical;border:1px solid #43516d;background:#0d1425;border-radius:10px;color:white;font:inherit;padding:12px;line-height:1.5;font-size:13px}
+input[type=range]{accent-color:#85a9ff;cursor:pointer;max-width:100%}
+.full{width:100%}.presets{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:11px 0}.presets button{padding:10px 4px}
+#trackList{display:flex;flex-direction:column;gap:10px}.track{display:grid;grid-template-columns:28px 1fr 50px;gap:8px;align-items:center}.track .title{display:flex;justify-content:space-between;align-items:center;font-size:12px}.track input{width:100%;margin:7px 0 0}.mute{padding:6px 4px;font-size:11px;min-width:28px}.mute.off{background:#593347;border-color:#90536b}.dot{width:11px;height:11px;border-radius:50%;display:inline-block;margin-right:6px}
+label{font-size:12px;color:#d2dbef}.options{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center}
+input[type=file]{font-size:11px;color:#b7c7de;width:100%;margin-top:8px}select{width:100%}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:13px 0 0}
+#status{margin-top:12px;color:#b4cee9;font-size:12px;min-height:32px;line-height:1.5;word-wrap:break-word}
+footer{max-width:1440px;margin:auto;padding:0 24px 20px;font-size:11px;color:#7e92b4;line-height:1.8}
+kbd{border:1px solid #50617c;border-radius:5px;padding:2px 5px;font-size:11px}
+@media(max-width:980px){main{grid-template-columns:1fr}.side{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.visual{height:52vh}}@media(max-width:630px){header{padding:13px 15px}.pill{display:none}main{padding:0 12px 16px}.side{display:flex}.visual{min-height:340px;height:46vh}.hero{align-items:flex-start}.hero .row button{padding:8px}footer{padding:0 14px 15px}}
+</style>
+</head>
+<body>
+<header><div class="brand"><div class="logo">♫</div><div><h1>SoundScape Lab</h1><small>Web Audio × Three.js｜3D 互動音景創作教室</small></div></div><span class="pill">純前端 · GitHub Pages</span></header>
+<main>
+  <div class="panel">
+    <div class="hero"><div><h2>我的 3D 聲音宇宙</h2><p>拖曳旋轉視角，點擊彩色音球控制音軌；音柱隨聲音跳動</p></div><div class="row"><button class="primary" id="play">▶ 開始播放</button><button id="reset">重設視角</button></div></div>
+    <div class="visual"><canvas id="scene"></canvas><div class="overlay"><strong id="sceneTitle">魔法音樂森林</strong><small id="sceneDesc">用文字創造你的聲音與畫面</small></div><div class="bottombar"><span id="soundState">等待啟動音訊</span><span>Web Audio API · 即時混音</span></div></div>
+  </div>
+  <aside class="side">
+    <div class="panel section"><h3>01｜提示詞創作</h3><textarea id="prompt" aria-label="音景提示詞">夜晚的魔法森林，輕柔雨聲和清脆鈴聲，80 BPM，紫色星光</textarea><div class="presets"><button data-preset="forest">魔法森林</button><button data-preset="ocean">深海冒險</button><button data-preset="space">太空旅程</button><button data-preset="city">城市夜雨</button></div><button class="primary full" id="generate">依提示詞生成音景</button><p>提示詞採本地關鍵字解析，不會上傳到伺服器。支援主題、情境、雨／風／鈴聲、BPM 與顏色。</p></div>
+    <div class="panel section"><h3>02｜多軌聲音混音</h3><div id="trackList"></div><div class="row" style="margin-top:12px"><label for="bpm">速度 BPM</label><input id="bpm" type="range" min="50" max="160" value="80" style="flex:1"><span id="bpmValue">80</span></div><label for="audioFile">加入學生的音樂或音效（MP3／WAV／M4A 等）</label><input type="file" id="audioFile" accept="audio/*"></div>
+    <div class="panel section"><h3>03｜背景畫面</h3><p>上傳圖片／影片，作為 3D 場景背景；錄影時會一起匯出。</p><input id="bgFile" type="file" accept="image/*,video/*"><div class="row" style="margin-top:11px"><button id="clearBg">清除背景</button><span id="bgName" style="font-size:12px;color:var(--muted)">使用預設星空</span></div></div>
+    <div class="panel section"><h3>04｜下載創作作品</h3><div class="options"><label for="duration">作品長度</label><select id="duration"><option value="10">10 秒</option><option value="20">20 秒</option><option value="30">30 秒</option></select></div><div class="actions"><button class="primary" id="mp3">下載 MP3</button><button class="primary" id="mp4">下載 MP4</button></div><div id="status" role="status" aria-live="polite">請先按「開始播放」。匯出時會即時錄製所設定的秒數。</div><p>MP4 優先直接錄製，不支援時使用 FFmpeg.wasm 轉檔；轉檔失敗會下載 WebM 備份。請使用最新版 Chrome 或 Edge。</p></div>
+  </aside>
+</main>
+<footer>教學重點：中文提示詞、聲音合成、音量與節奏、3D 即時視覺化、媒體創作與匯出。原創作業請留意音樂、照片與影片的使用授權。</footer>
+<script type="module">
+import * as THREE from "https://esm.sh/three@0.180.0";
+const $=id=>document.getElementById(id), status=t=>{$("status").textContent=t};
+let context=null,master=null,analyser=null,streamOut=null,timer=null,step=0,playing=false,bpm=80,uploadedSource=null,uploadedBuffer=null,noiseSources=[],mediaURL=null,video=null;
+const defaults=[
+ {id:"melody",name:"旋律",color:0x82a5ff,volume:.45},
+ {id:"bass",name:"低音",color:0x9c7cf5,volume:.32},
+ {id:"rain",name:"雨聲",color:0x42c6f0,volume:.30},
+ {id:"wind",name:"風聲",color:0x65d3bb,volume:.17},
+ {id:"bell",name:"鈴聲",color:0xffc577,volume:.39},
+ {id:"upload",name:"自訂音訊",color:0xf18dbc,volume:.65}
+];
+const tracks=defaults.map(x=>({...x,mute:false,gain:null}));const getTrack=id=>tracks.find(x=>x.id===id);
+function renderTracks(){
+ $("trackList").innerHTML=tracks.map(t=>'<div class="track"><button class="mute '+(t.mute?'off':'')+'" data-mute="'+t.id+'" title="切換靜音">'+(t.mute?'×':'♪')+'</button><div><div class="title"><span><span class="dot" style="background:#'+t.color.toString(16).padStart(6,'0')+'"></span>'+t.name+'</span><span id="val-'+t.id+'">'+Math.round(t.volume*100)+'%</span></div><input aria-label="'+t.name+'音量" data-volume="'+t.id+'" type="range" min="0" max="100" value="'+Math.round(t.volume*100)+'"></div><span style="color:#829ab8;font-size:11px">'+(t.mute?'靜音':'啟用')+'</span></div>').join('');
+ document.querySelectorAll("[data-volume]").forEach(el=>el.oninput=()=>{const t=getTrack(el.dataset.volume);t.volume=+el.value/100;applyGain(t);$("val-"+t.id).textContent=el.value+"%"});
+ document.querySelectorAll("[data-mute]").forEach(el=>el.onclick=()=>toggleTrack(el.dataset.mute));
+}
+function applyGain(t){if(t.gain&&context)t.gain.gain.setTargetAtTime(t.mute?0:t.volume,context.currentTime,.04)}
+function toggleTrack(id){const t=getTrack(id);t.mute=!t.mute;applyGain(t);renderTracks();syncOrbs()}
+function makeNoise(){
+ const rate=context.sampleRate,buf=context.createBuffer(1,rate*2,rate),dst=buf.getChannelData(0);
+ for(let i=0;i<dst.length;i++)dst[i]=Math.random()*2-1;
+ for(const type of ["rain","wind"]){
+  const src=context.createBufferSource();src.buffer=buf;src.loop=true;
+  const filter=context.createBiquadFilter();filter.type=type==="rain"?"highpass":"lowpass";filter.frequency.value=type==="rain"?1200:400;
+  src.connect(filter).connect(getTrack(type).gain);src.start();noiseSources.push(src);
+ }
+}
+function initAudio(){
+ if(context)return;
+ context=new(window.AudioContext||window.webkitAudioContext)();
+ master=context.createGain();master.gain.value=.65;analyser=context.createAnalyser();analyser.fftSize=512;
+ streamOut=context.createMediaStreamDestination();master.connect(analyser);analyser.connect(context.destination);master.connect(streamOut);
+ tracks.forEach(t=>{t.gain=context.createGain();t.gain.gain.value=t.mute?0:t.volume;t.gain.connect(master)});
+ makeNoise();if(uploadedBuffer)startUploaded();
+}
+function beep(track,freq,dur,shape="sine"){
+ const osc=context.createOscillator(),env=context.createGain(),now=context.currentTime;
+ osc.type=shape;osc.frequency.setValueAtTime(freq,now);env.gain.setValueAtTime(.0001,now);env.gain.exponentialRampToValueAtTime(.22,now+.02);env.gain.exponentialRampToValueAtTime(.0001,now+dur);
+ osc.connect(env).connect(getTrack(track).gain);osc.start(now);osc.stop(now+dur+.02);
+}
+function tick(){
+ if(!playing||!context)return;
+ const notes=[261.63,329.63,392,523.25,440,392,329.63,293.66];
+ if(step%2===0)beep("melody",notes[(step/2)%notes.length],.23,"sine");
+ if(step%4===0)beep("bass",notes[(step/4)%notes.length]/2,.4,"triangle");
+ if(step%3===0)beep("bell",notes[(step+3)%notes.length]*2,.55,"sine");
+ step++;
+}
+function restartTiming(){if(timer)clearInterval(timer);if(playing){tick();timer=setInterval(tick,60000/bpm/2)}}
+function startUploaded(){
+ if(!context||!uploadedBuffer)return;
+ if(uploadedSource){try{uploadedSource.stop()}catch{}uploadedSource.disconnect()}
+ uploadedSource=context.createBufferSource();uploadedSource.buffer=uploadedBuffer;uploadedSource.loop=true;uploadedSource.connect(getTrack("upload").gain);uploadedSource.start();
+}
+async function startAudio(){
+ initAudio();await context.resume();playing=true;restartTiming();$("play").textContent="❚❚ 暫停播放";$("soundState").textContent="正在播放｜"+bpm+" BPM";
+ if(video)video.play().catch(()=>{});
+}
+async function pauseAudio(){
+ if(timer)clearInterval(timer);timer=null;playing=false;if(context)await context.suspend();if(video)video.pause();$("play").textContent="▶ 開始播放";$("soundState").textContent="已暫停";
+}
+$("play").onclick=async()=>{try{playing?await pauseAudio():await startAudio()}catch(e){status("播放失敗："+e.message)}};
+$("bpm").oninput=e=>{bpm=+e.target.value;$("bpmValue").textContent=bpm;restartTiming()};
+$("audioFile").onchange=async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ try{initAudio();const bytes=await file.arrayBuffer();uploadedBuffer=await context.decodeAudioData(bytes);startUploaded();status("已加入音軌："+file.name)}catch(err){status("無法讀取音訊："+err.message)}
+};
+const canvas=$("scene"),renderer=new THREE.WebGLRenderer({canvas,antialias:true,preserveDrawingBuffer:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;
+const scene=new THREE.Scene();scene.background=new THREE.Color("#101735");
+const camera=new THREE.PerspectiveCamera(55,1,.1,200);camera.position.set(0,3,13);
+scene.add(new THREE.HemisphereLight(0xcde6ff,0x1f164c,2));
+const light=new THREE.PointLight(0x94b6ff,80,35);light.position.set(4,6,5);scene.add(light);
+const core=new THREE.Mesh(new THREE.IcosahedronGeometry(2.15,2),new THREE.MeshStandardMaterial({color:0x5c69d8,wireframe:true,emissive:0x343aa1,metalness:.5,roughness:.25}));scene.add(core);
+const inner=new THREE.Mesh(new THREE.IcosahedronGeometry(1.32,3),new THREE.MeshPhysicalMaterial({color:0x6a8dfd,transparent:true,opacity:.53,roughness:.12,metalness:.4}));scene.add(inner);
+const ring=new THREE.Mesh(new THREE.TorusGeometry(3,.032,8,150),new THREE.MeshBasicMaterial({color:0x8fbbff}));ring.rotation.x=.7;scene.add(ring);
+const particles=[];for(let i=0;i<420;i++){particles.push((Math.random()-.5)*55,(Math.random()-.5)*38,(Math.random()-.5)*32)}
+const stars=new THREE.BufferGeometry();stars.setAttribute("position",new THREE.Float32BufferAttribute(particles,3));const cloud=new THREE.Points(stars,new THREE.PointsMaterial({color:0xb9d1ff,size:.065,transparent:true,opacity:.82}));scene.add(cloud);
+const bars=[];for(let i=0;i<64;i++){const a=i/64*Math.PI*2;const m=new THREE.Mesh(new THREE.BoxGeometry(.16,1,.16),new THREE.MeshStandardMaterial({color:new THREE.Color().setHSL(i/64,.85,.66),emissive:new THREE.Color().setHSL(i/64,.8,.18)}));m.position.set(Math.cos(a)*4.0,-1.7,Math.sin(a)*4.0);scene.add(m);bars.push(m)}
+const orbs=[];tracks.forEach((t,i)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.32,20,20),new THREE.MeshStandardMaterial({color:t.color,emissive:t.color,emissiveIntensity:.6}));const angle=i/tracks.length*Math.PI*2;m.position.set(Math.cos(angle)*5.1,.8+Math.sin(i*1.7),Math.sin(angle)*4);m.userData.track=t.id;scene.add(m);orbs.push(m)});
+function syncOrbs(){orbs.forEach(o=>o.material.opacity=getTrack(o.userData.track).mute?.25:1)}
+let yaw=0,pitch=.13,dragging=false,lastX=0,lastY=0,moved=false;
+canvas.addEventListener("pointerdown",e=>{dragging=true;moved=false;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture(e.pointerId)});
+canvas.addEventListener("pointermove",e=>{if(!dragging)return;const dx=e.clientX-lastX,dy=e.clientY-lastY;if(Math.abs(dx)+Math.abs(dy)>2)moved=true;yaw+=dx*.008;pitch=Math.max(-.7,Math.min(.7,pitch+dy*.006));lastX=e.clientX;lastY=e.clientY});
+canvas.addEventListener("pointerup",e=>{dragging=false;if(moved)return;const rect=canvas.getBoundingClientRect(),mouse=new THREE.Vector2((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1);const ray=new THREE.Raycaster();ray.setFromCamera(mouse,camera);const hit=ray.intersectObjects(orbs)[0];if(hit)toggleTrack(hit.object.userData.track)});
+$("reset").onclick=()=>{yaw=0;pitch=.13};
+let bgTexture=null,bgURL=null;
+async function clearBg(){if(video){video.pause();video.src="";video=null}if(bgURL)URL.revokeObjectURL(bgURL);bgURL=null;if(bgTexture)bgTexture.dispose();bgTexture=null;scene.background=new THREE.Color("#101735");$("bgName").textContent="使用預設星空"}
+$("clearBg").onclick=clearBg;
+$("bgFile").onchange=async e=>{
+ const file=e.target.files?.[0];if(!file)return;await clearBg();bgURL=URL.createObjectURL(file);
+ try{
+  if(file.type.startsWith("video/")){
+   video=document.createElement("video");video.src=bgURL;video.loop=true;video.muted=true;video.playsInline=true;video.crossOrigin="anonymous";await video.play();bgTexture=new THREE.VideoTexture(video);
+  }else if(file.type.startsWith("image/")){
+   bgTexture=await new THREE.TextureLoader().loadAsync(bgURL);
+  }else throw new Error("請選擇圖片或影片");
+  bgTexture.colorSpace=THREE.SRGBColorSpace;scene.background=bgTexture;$("bgName").textContent=file.name;
+ }catch(err){status("背景載入失敗："+err.message)}
+};
+function applyPreset(name){
+ const names={forest:"魔法森林",ocean:"深海冒險",space:"太空旅程",city:"城市夜雨"};
+ const colors={forest:"#182b30",ocean:"#071f40",space:"#101034",city:"#26213a"};
+ scene.background=new THREE.Color(colors[name]||colors.space);
+ $("sceneTitle").textContent=names[name]||"自訂音景";
+ $("sceneDesc").textContent="點擊音球或調整右側音量，創作自己的聲音宇宙";
+ const volumes={forest:[.45,.23,.55,.25,.55],ocean:[.3,.42,.12,.65,.28],space:[.6,.52,.06,.32,.4],city:[.25,.42,.8,.18,.12]};
+ if(volumes[name])tracks.slice(0,5).forEach((t,i)=>{t.volume=volumes[name][i];applyGain(t)});
+ $("sceneTitle").style.color=name==="ocean"?"#9cdcff":"#f2f5ff";
+ renderTracks();
+}
+const examples={
+ forest:"夜晚的魔法森林，輕柔雨聲、清脆鈴聲，80 BPM，紫色星光",
+ ocean:"深海冒險，安靜的海流與低音，65 BPM，藍色海底",
+ space:"太空旅程，電子旋律、宇宙星光，110 BPM，紫色",
+ city:"城市夜雨，街道雨聲與音樂，90 BPM，藍紫霓虹"
+};
+document.querySelectorAll("[data-preset]").forEach(b=>b.onclick=()=>{$("prompt").value=examples[b.dataset.preset];generate()});
+function generate(){
+ const p=$("prompt").value.toLowerCase();
+ let theme=/海洋|海底|海水|ocean/.test(p)?"ocean":/城市|街道|霓虹|city/.test(p)?"city":/太空|宇宙|星空|space/.test(p)?"space":"forest";
+ applyPreset(theme);
+ const m=p.match(/(\d{2,3})\s*bpm/i);if(m){bpm=Math.max(50,Math.min(160,+m[1]));$("bpm").value=bpm;$("bpmValue").textContent=bpm;restartTiming()}
+ if(/雨|rain/.test(p)){const t=getTrack("rain");t.volume=.72;applyGain(t)}
+ if(/風|wind/.test(p)){const t=getTrack("wind");t.volume=.65;applyGain(t)}
+ if(/鈴|bell/.test(p)){const t=getTrack("bell");t.volume=.75;applyGain(t)}
+ if(/安靜|輕柔|soft/.test(p))master&&(master.gain.value=.42);
+ if(/紅色|red/.test(p))core.material.color.set("#db506c");
+ else if(/綠色|green/.test(p))core.material.color.set("#4ccc9c");
+ else if(/紫色|purple/.test(p))core.material.color.set("#8368f5");
+ else if(/藍色|blue/.test(p))core.material.color.set("#4796f2");
+ renderTracks();status("已套用提示詞音景，可進一步調整音量和背景。");
+}
+$("generate").onclick=generate;
+function resize(){const rect=canvas.getBoundingClientRect();renderer.setSize(rect.width,rect.height,false);camera.aspect=rect.width/rect.height;camera.updateProjectionMatrix()}
+new ResizeObserver(resize).observe(canvas.parentElement);resize();
+const freq=new Uint8Array(256),clock=new THREE.Clock();
+function animate(){
+ requestAnimationFrame(animate);const t=clock.getElapsedTime();
+ core.rotation.y=t*.12;core.rotation.z=t*.08;inner.rotation.y=-t*.18;ring.rotation.z=t*.09;cloud.rotation.y=t*.004;
+ camera.position.x=Math.sin(yaw)*13*Math.cos(pitch);camera.position.z=Math.cos(yaw)*13*Math.cos(pitch);camera.position.y=3+Math.sin(pitch)*12;camera.lookAt(0,0,0);
+ if(analyser)analyser.getByteFrequencyData(freq);
+ bars.forEach((m,i)=>{const power=analyser?freq[(i*3)%freq.length]/255:.13+.1*Math.sin(t*2+i*.4);const h=.15+power*3.6;m.scale.y=h;m.position.y=-1.7+h*.5});
+ orbs.forEach((m,i)=>{m.position.y=.7+Math.sin(i*1.7+t*.7)*.6;m.scale.setScalar(getTrack(m.userData.track).mute?.75:1+.07*Math.sin(t*3+i))});
+ renderer.render(scene,camera);
+}animate();generate();
+function save(blob,ext){const a=document.createElement("a"),url=URL.createObjectURL(blob);a.href=url;a.download="SoundScape-Lab-"+Date.now()+"."+ext;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000)}
+function bestType(videoMode){
+ const types=videoMode?["video/mp4;codecs=avc1.42E01E,mp4a.40.2","video/mp4","video/webm;codecs=vp9,opus","video/webm;codecs=vp8,opus","video/webm"]:["audio/webm;codecs=opus","audio/webm","audio/mp4"];
+ const mime=types.find(x=>MediaRecorder.isTypeSupported(x));if(!mime)throw Error("瀏覽器不支援錄製");return mime;
+}
+async function record(videoMode){
+ if(!playing)await startAudio();
+ const mime=bestType(videoMode),stream=videoMode?new MediaStream([...canvas.captureStream(30).getVideoTracks(),...streamOut.stream.getAudioTracks().map(t=>t.clone())]):new MediaStream(streamOut.stream.getAudioTracks().map(t=>t.clone()));
+ const recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:3500000});
+ const chunks=[];const seconds=+$("duration").value;
+ const recording=new Promise((resolve,reject)=>{recorder.ondataavailable=e=>e.data.size&&chunks.push(e.data);recorder.onerror=()=>reject(Error("錄製失敗"));recorder.onstop=()=>resolve(new Blob(chunks,{type:mime.split(";")[0]}))});
+ recorder.start(1000);
+ for(let i=0;i<seconds;i++){status("錄製中 "+(i+1)+"/"+seconds+" 秒");await new Promise(r=>setTimeout(r,1000))}
+ recorder.stop();const blob=await recording;stream.getTracks().forEach(t=>t.stop());
+ return{blob,mime};
+}
+async function toMp3(blob){
+ status("正在載入 MP3 編碼器…");
+ const lame=await import("https://esm.sh/@breezystack/lamejs@1.2.7");
+ const ac=new(window.AudioContext||window.webkitAudioContext)();let buffer;
+ try{buffer=await ac.decodeAudioData(await blob.arrayBuffer())}finally{await ac.close()}
+ const left=buffer.getChannelData(0),right=buffer.getChannelData(Math.min(1,buffer.numberOfChannels-1));
+ const enc=new lame.Mp3Encoder(2,buffer.sampleRate,160),chunks=[];
+ const pcm=src=>{const arr=new Int16Array(src.length);for(let i=0;i<arr.length;i++){const s=Math.max(-1,Math.min(1,src[i]));arr[i]=s<0?s*32768:s*32767}return arr};
+ for(let i=0;i<left.length;i+=1152){const b=enc.encodeBuffer(pcm(left.subarray(i,i+1152)),pcm(right.subarray(i,i+1152)));if(b.length)chunks.push(new Uint8Array(b));if(i%(1152*40)===0){status("編碼 MP3 "+Math.round(i/left.length*100)+"%");await new Promise(r=>setTimeout(r,0))}}
+ const last=enc.flush();if(last.length)chunks.push(new Uint8Array(last));return new Blob(chunks,{type:"audio/mpeg"});
+}
+async function toMp4(webm){
+ status("正在載入影片轉檔核心（第一次可能需下載約 31 MB）…");
+ const [{FFmpeg},{toBlobURL,fetchFile}]=await Promise.all([import("https://esm.sh/@ffmpeg/ffmpeg@0.12.15"),import("https://esm.sh/@ffmpeg/util@0.12.2")]);
+ const f=new FFmpeg(),base="https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/esm";
+ await f.load({coreURL:await toBlobURL(base+"/ffmpeg-core.js","text/javascript"),wasmURL:await toBlobURL(base+"/ffmpeg-core.wasm","application/wasm")});
+ await f.writeFile("input.webm",await fetchFile(webm));status("正在轉檔 MP4…");
+ const code=await f.exec(["-i","input.webm","-c:v","libx264","-preset","ultrafast","-pix_fmt","yuv420p","-c:a","aac","-movflags","+faststart","output.mp4"]);
+ if(code!==0)throw Error("轉檔核心回傳 "+code);
+ const data=await f.readFile("output.mp4");f.terminate();return new Blob([data],{type:"video/mp4"});
+}
+async function exportFile(mode){
+ const btn=$(mode);btn.disabled=true;
+ try{
+  status("準備錄製 "+mode.toUpperCase()+"…");
+  const {blob,mime}=await record(mode==="mp4");
+  if(mode==="mp3"){const mp3=await toMp3(blob);save(mp3,"mp3");status("MP3 已開始下載");return}
+  if(mime.startsWith("video/mp4")){save(blob,"mp4");status("MP4 已開始下載");return}
+  try{const mp4=await toMp4(blob);save(mp4,"mp4");status("MP4 已開始下載")}
+  catch(e){save(blob,"webm");status("MP4 轉檔失敗，已下載 WebM 備份："+e.message)}
+ }catch(e){status("匯出失敗："+e.message)}finally{btn.disabled=false}
+}
+$("mp3").onclick=()=>exportFile("mp3");$("mp4").onclick=()=>exportFile("mp4");
+renderTracks();
+</script>
+</body></html>
