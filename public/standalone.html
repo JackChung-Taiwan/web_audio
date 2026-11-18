@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <meta name="theme-color" content="#090b20"/>
 <meta name="description" content="彩虹節奏宇宙：Three.js 3D 音樂視覺化、YouTube 分頁音訊、六種動態粒子"/>
-<title>彩虹節奏宇宙 V2｜Three.js + Web Audio + YouTube</title>
+<title>彩虹節奏宇宙 V3｜長線條音樂頻譜 + 粒子</title>
 <style>:root{color-scheme:dark;--pink:#ff54b5;--cyan:#4de6ff;--gold:#ffd46d;--ink:#090b20;--glass:rgba(11,15,39,.81);--border:rgba(201,215,255,.18)}
 *{box-sizing:border-box}html,body{margin:0;width:100%;min-height:100%;font-family:system-ui,-apple-system,'Microsoft JhengHei','Noto Sans TC',sans-serif;color:#fff;background:#070919}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 #stage{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}#stage:active{cursor:grabbing}
@@ -32,6 +32,11 @@ footer{display:flex;justify-content:center;pointer-events:none}.transport{pointe
 @media (max-width:1050px){.leftCopy{display:none}.center{justify-content:flex-end}.controlPanel{width:min(360px,46vw)}.ytCard{bottom:98px}}
 @media (max-width:660px){#app{padding:10px;gap:7px}header{min-height:40px}.brandIcon{width:38px;height:38px;border-radius:12px}.tagline{font-size:9px}.state{font-size:10px;padding:8px}.center{align-items:flex-start}.controlPanel{width:100%;max-height:38vh;padding:12px;border-radius:15px}.controlPanel .help{display:none}.transport{gap:5px;padding:8px}.btn{font-size:11px;padding:8px}.ytCard{left:10px;bottom:125px;width:min(255px,72vw)}.track{display:none}.footerNote{display:none}}
 @media (max-width:410px){h1{font-size:16px}.tagline{display:none}.state{max-width:125px}.controlPanel{max-height:34vh}.ytCard{bottom:122px}}
+#exitPure{position:fixed;z-index:30;top:16px;right:16px;border:1px solid #ffffff35;border-radius:100px;padding:11px 15px;background:#101936a8;color:#fff;font-size:12px;backdrop-filter:blur(8px);cursor:pointer;opacity:.2;transition:opacity .2s}
+#exitPure[hidden]{display:none}
+#exitPure:hover,#exitPure:focus-visible{opacity:1}
+body.visualOnly #app,body.visualOnly #notice,body.visualOnly .footerNote{opacity:0;visibility:hidden;pointer-events:none}
+body.visualOnly #ytCard{opacity:0;visibility:hidden;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.dot.live{animation:none}}
 </style>
 <script type="importmap">
@@ -45,11 +50,11 @@ footer{display:flex;justify-content:center;pointer-events:none}.transport{pointe
 <canvas id="stage" aria-label="Three.js 3D 音樂視覺化互動畫面"></canvas>
 <div id="app">
   <header>
-    <div class="brand"><div class="brandIcon" aria-hidden="true">♫</div><div><h1>彩虹節奏宇宙 V2</h1><div class="tagline">THREE.JS · AUDIO REACTIVE UNIVERSE</div></div></div>
+    <div class="brand"><div class="brandIcon" aria-hidden="true">♫</div><div><h1>彩虹節奏宇宙 V3</h1><div class="tagline">THREE.JS · AUDIO REACTIVE UNIVERSE</div></div></div>
     <div class="state glass"><span class="dot" id="stateDot"></span><span id="stateText">等待音樂</span></div>
   </header>
   <section class="center">
-    <div class="leftCopy"><span class="eyebrow">MAKE MUSIC VISIBLE</span><h2>讓星球<br>跟著音樂<br>跳舞！</h2><p>低音帶動繽紛球體，高音點亮彩色粒子。可以上傳音樂、貼上 YouTube 連結，或直接播放原創節奏。</p></div>
+    <div class="leftCopy"><span class="eyebrow">MAKE MUSIC VISIBLE</span><h2>讓線條<br>跟著音樂<br>跳舞！</h2><p>低音拉長音樂線條，高音點亮彩色粒子。可以上傳音樂、貼上 YouTube 連結，或直接播放原創節奏。</p></div>
     <aside class="controlPanel glass" aria-label="音樂與粒子設定">
       <div class="sectionHead"><h3>YouTube 音樂連結</h3><span>LINK TO MUSIC</span></div>
       <input id="youtubeLink" type="url" autocomplete="off" spellcheck="false" placeholder="貼上 youtube.com/watch?v=..." aria-label="YouTube 影片連結"/>
@@ -72,8 +77,8 @@ footer{display:flex;justify-content:center;pointer-events:none}.transport{pointe
         <button class="choice" data-theme="ocean"><span class="themeBubble"></span>海洋</button>
         <button class="choice" data-theme="aurora"><span class="themeBubble"></span>極光</button>
       </div>
-      <div class="label"><label for="centerBrightness">中央球體亮度</label><b id="centerBrightnessValue">45%</b></div>
-       <input id="centerBrightness" type="range" min="10" max="100" value="45" aria-label="調整中央球體亮度"/>
+      <div class="label"><label for="lineLength">律動線條長度</label><b id="lineLengthValue">175%</b></div>
+       <input id="lineLength" type="range" min="70" max="260" step="5" value="175" aria-label="調整音樂線條的長度"/>
        <div class="label"><label for="intensity">律動強度</label><b id="intensityValue">100%</b></div>
       <input id="intensity" type="range" min="20" max="200" value="100"/>
       <div class="label"><label for="particles">粒子數量</label><b id="particlesValue">2,100</b></div>
@@ -95,10 +100,12 @@ footer{display:flex;justify-content:center;pointer-events:none}.transport{pointe
       <button class="btn" id="micButton">◉ 麥克風</button>
       <button class="btn" id="shotButton">▣ PNG 截圖</button>
       <button class="btn" id="fullButton">⛶ 全螢幕</button>
+       <button class="btn primary" id="visualOnlyButton" title="隱藏所有介面，只顯示音樂線條與粒子動畫">◈ 純視覺模式</button>
       <div class="track"><strong id="trackTitle">彩虹節奏 · 原創電子音</strong><small>Three.js + Web Audio API</small></div>
     </div>
   </footer>
 </div>
+<button id="exitPure" type="button" hidden title="還原操作介面（也可按 Esc 或 H）" aria-label="還原操作介面">↩ 還原介面</button>
 <div id="ytCard" class="ytCard glass" hidden><div class="ytTitle">YouTube 播放器 <button id="youtubeClose" class="xBtn" aria-label="關閉播放器">×</button></div><iframe id="youtubeFrame" class="youtubePlayer" title="YouTube 音樂播放器" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="ytNote">影片可直接播放。若要依據真正的聲音跳動，請按右側「分享分頁音訊」，並在瀏覽器分享視窗勾選音訊。</div></div>
 <div id="notice" role="status" aria-live="polite"></div>
 <div id="noWebGL" hidden>此瀏覽器無法啟動 WebGL。請使用最新版 Chrome / Edge，並開啟硬體加速。</div>
@@ -131,7 +138,7 @@ try {
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.7));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.5;
+renderer.toneMappingExposure = 1.12;
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(57,1,0.1,110);
 camera.position.set(0,2.8,13.5);
@@ -150,29 +157,60 @@ const bloom = new UnrealBloomPass(new THREE.Vector2(960,540),.86,.55,.66);
 composer.addPass(bloom);
 composer.addPass(new OutputPass());
 const world = new THREE.Group(); scene.add(world);
-const ambient = new THREE.AmbientLight('#ffffff',1.2); scene.add(ambient);
-const lights = [
-  new THREE.PointLight('#ff54b5',90,30,2),
-  new THREE.PointLight('#41eaff',85,30,2),
-  new THREE.PointLight('#ffe07c',65,26,2)
-];
-scene.add(...lights);
-const orbGeometry = new THREE.SphereGeometry(1.95,48,34);
-const base = Float32Array.from(orbGeometry.attributes.position.array);
-const orbMat = new THREE.MeshPhysicalMaterial({color:'#fc93f2',roughness:.36,metalness:.2,clearcoat:.7,clearcoatRoughness:.22,emissive:'#ff3d90',emissiveIntensity:.22});
-const orb = new THREE.Mesh(orbGeometry,orbMat); world.add(orb);
-const shell = new THREE.Mesh(new THREE.IcosahedronGeometry(2.09,2),new THREE.MeshBasicMaterial({color:'#54edff',wireframe:true,transparent:true,opacity:.22,depthWrite:false}));world.add(shell);
-const glow = new THREE.Mesh(new THREE.SphereGeometry(2.25,40,24),new THREE.MeshBasicMaterial({color:'#ff4eb3',transparent:true,opacity:.035,side:THREE.BackSide,depthWrite:false}));world.add(glow);
-const rings = [];
-for(let i=0;i<4;i++){
- const radius=2.85+i*.34;
- const m=new THREE.Mesh(new THREE.TorusGeometry(radius,.018+i*.009,8,140),new THREE.MeshBasicMaterial({color:i%2?'#42ecff':'#ff68c2',transparent:true,opacity:.6,depthWrite:false}));
- m.rotation.set(i*.48+.22,i*.63,.15+i*.42);
- world.add(m); rings.push(m);
+// Frequency spectrum is drawn as 288 long, dynamically-sized 3D lines instead of a glowing ball.
+const LINE_BINS=96, LINE_LAYERS=3;
+const barGeometry=new THREE.CylinderGeometry(.026,.026,1,5,1);
+const barMaterial=new THREE.MeshBasicMaterial({transparent:true,opacity:.83,depthWrite:false});
+const bars=new THREE.InstancedMesh(barGeometry,barMaterial,LINE_BINS*LINE_LAYERS);
+bars.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+bars.frustumCulled=false;world.add(bars);
+const barDummy=new THREE.Object3D(),lineBands=new Float32Array(LINE_BINS);
+let lineLength=1.75;
+const waveLayers=[];
+for(let layer=0;layer<LINE_LAYERS;layer++){
+  const vertices=new Float32Array(LINE_BINS*3),g=new THREE.BufferGeometry();
+  g.setAttribute('position',new THREE.BufferAttribute(vertices,3).setUsage(THREE.DynamicDrawUsage));
+  const m=new THREE.LineBasicMaterial({color:'#8cedff',transparent:true,opacity:.45,depthWrite:false});
+  const wave=new THREE.Line(g,m);wave.frustumCulled=false;world.add(wave);
+  waveLayers.push({vertices,g,m});
 }
-const satellites=[];
-for(let i=0;i<26;i++){
- const m=new THREE.Mesh(new THREE.OctahedronGeometry(i%4===0 ? .105 : .055,0),new THREE.MeshBasicMaterial({color:i%3===0?'#ffd572':i%3===1?'#ff71d1':'#87f2ff',transparent:true,opacity:.85}));world.add(m);satellites.push(m);
+function recolorLines(theme){
+  const palette=[new THREE.Color(theme.main),new THREE.Color(theme.second),new THREE.Color(theme.third)];
+  const col=new THREE.Color();
+  for(let layer=0;layer<LINE_LAYERS;layer++){
+    waveLayers[layer].m.color.copy(palette[layer]);
+    for(let i=0;i<LINE_BINS;i++){
+      col.copy(palette[layer]).lerp(palette[(layer+1)%3],.14+.66*i/(LINE_BINS-1));
+      bars.setColorAt(layer*LINE_BINS+i,col);
+    }
+  }
+  if(bars.instanceColor)bars.instanceColor.needsUpdate=true;
+}
+function animateLines(t,bass,mid,high,flash,frequencyBands){
+  const width=20.8;
+  for(let i=0;i<LINE_BINS;i++){
+    const raw=frequencyBands?.[i]||0;
+    const target=clamp(raw*2.25+(i<20?bass*.19:i<65?mid*.12:high*.1),0,1);
+    lineBands[i]=lerp(lineBands[i],target,target>lineBands[i] ? .38 : .13);
+    const x=(i/(LINE_BINS-1)-.5)*width;
+    for(let layer=0;layer<LINE_LAYERS;layer++){
+      const phase=i*.145+layer*1.7;
+      const wave=.24*Math.sin(phase+t*(.9+layer*.14));
+      const motion=.13+.17*Math.sin(phase*1.25+t*.78);
+      const amplitude=clamp(lineBands[i]*(6.1+layer*.75)+bass*1.15+mid*.64+flash*.6,0,9);
+      const len=clamp((.55+motion+amplitude)*lineLength*(layer===0?.9:layer===1?1:.78),.35,12.8);
+      const z=(layer-1)*2.65,y=wave+(layer-1)*.12;
+      const index=layer*LINE_BINS+i;
+      barDummy.position.set(x,y,z);
+      barDummy.scale.set(layer===1?1:.85,len,1);
+      barDummy.rotation.set(0,0,Math.sin(t*.3+i*.08+layer)*.028);
+      barDummy.updateMatrix();bars.setMatrixAt(index,barDummy.matrix);
+      const v=waveLayers[layer].vertices,j=i*3;
+      v[j]=x;v[j+1]=y+len*.5;v[j+2]=z;
+    }
+  }
+  bars.instanceMatrix.needsUpdate=true;
+  for(const wave of waveLayers)wave.g.attributes.position.needsUpdate=true;
 }
 // Low-overhead shader points: hue and size come from typed-array attributes; particles never allocate a mesh apiece.
 const particleMat = new THREE.ShaderMaterial({
@@ -215,14 +253,11 @@ backdropGeo.setAttribute('position',new THREE.BufferAttribute(starCoords,3));
 backdropGeo.setAttribute('color',new THREE.BufferAttribute(starCol,3));
 const backdrop=new THREE.Points(backdropGeo,new THREE.PointsMaterial({size:.065,vertexColors:true,transparent:true,opacity:.8,sizeAttenuation:true,depthWrite:false,blending:THREE.AdditiveBlending}));scene.add(backdrop);
 let theme=themes.candy;
-let centerBrightness=.45; // Softer default for the central sphere; peripheral particles remain bright.
 function setTheme(key){
  theme=themes[key]||themes.candy;
  scene.background=new THREE.Color(theme.bg);
  scene.fog=new THREE.FogExp2(theme.bg,.013);
- lights[0].color.set(theme.main);lights[1].color.set(theme.second);lights[2].color.set(theme.third);
- orbMat.color.set(theme.main).multiplyScalar(.30+.65*centerBrightness);orbMat.emissive.set(theme.main);shell.material.color.set(theme.second);glow.material.color.set(theme.main);
- rings.forEach((m,i)=>m.material.color.set(i%2?theme.second:theme.third));
+ recolorLines(theme);
  $('themeName').textContent=theme.name;
  document.documentElement.style.setProperty('--pink',theme.main);
  document.documentElement.style.setProperty('--cyan',theme.second);
@@ -291,41 +326,8 @@ function tick(ms){
  if(l.beat)beatFlash=1;
  beatFlash=Math.max(0,beatFlash-dt*2.8);
  const bass=smoothBass*intensity,mid=smoothMid*intensity,high=smoothHigh*intensity;
- const s=1+.085*Math.sin(t*1.3)+bass*.23+beatFlash*.16;
- orb.scale.setScalar(s);glow.scale.setScalar(s*1.07+mid*.09);
- orbMat.emissiveIntensity=(.18+bass*.68+beatFlash*.42)*(.40+centerBrightness*.8);
- glow.material.opacity=(.018+bass*.075+beatFlash*.038)*(.45+centerBrightness*.7);
- shell.material.opacity=(.12+mid*.23)*(.60+centerBrightness*.55);
- orb.rotation.y=t*.13;orb.rotation.z=Math.sin(t*.3)*.07;
- shell.rotation.set(t*.08,t*-.13,t*.09);
- for(let i=0;i<base.length;i+=3){
-  const x=base[i],y=base[i+1],z=base[i+2];
-  const r=1+(Math.sin(x*3.2+t*1.9)+Math.sin(y*4.1-t*2.4)+Math.sin(z*3.6+t*1.4))*.015*(1+bass*2)+bass*.07;
-  orbGeometry.attributes.position.array[i]=x*r;
-  orbGeometry.attributes.position.array[i+1]=y*r;
-  orbGeometry.attributes.position.array[i+2]=z*r;
- }
- orbGeometry.attributes.position.needsUpdate=true;
- if(frame%3===0)orbGeometry.computeVertexNormals();
- rings.forEach((r,i)=>{
-  r.rotation.y+=dt*(.21+i*.09)*(i%2===0?1:-1);
-  r.rotation.x+=dt*.1*(i%2===0?1:-1);
-  r.material.opacity=.25+high*.36+beatFlash*.25;
-  r.scale.setScalar(1+bass*.09+beatFlash*.07);
- });
- satellites.forEach((m,i)=>{
-  const ang=(i/26)*Math.PI*2+t*(.13+.03*(i%4));const rad=3.3+i%5*.35;
-  m.position.set(Math.cos(ang)*rad,Math.sin(ang*1.4+i)*2,Math.sin(ang)*rad);
-  m.rotation.x+=dt*(.6+i%5*.3);m.rotation.y+=dt*.7;
-  m.scale.setScalar(1+high*.8+beatFlash*.45);
- });
- lights[0].position.set(Math.sin(t*.7)*5,3,5);
- lights[1].position.set(Math.cos(t*.5)*-5,-3,-1);
- lights[2].position.set(4*Math.cos(t*.4),4,4*Math.sin(t*.4));
- lights[0].intensity=(22+bass*65)*(.60+centerBrightness*.55);
- lights[1].intensity=(19+mid*55)*(.60+centerBrightness*.55);
- lights[2].intensity=(17+beatFlash*65)*(.60+centerBrightness*.55);
- bloom.strength=.39+bass*.44+beatFlash*.16;
+ animateLines(t,bass,mid,high,beatFlash,l.bands);
+ bloom.strength=.26+bass*.32+beatFlash*.1;
  world.rotation.y=t*.025;
  backdrop.rotation.y=t*.006;
  animateParticles(t,bass,mid,high);
@@ -336,7 +338,7 @@ requestAnimationFrame(tick);
 window.__rainbowVisual={
  setTheme,setParticleMode,
  setIntensity(v){intensity=Number(v)/100;},
-  setCenterBrightness(v){centerBrightness=clamp(Number(v)/100,.1,1);orbMat.color.set(theme.main).multiplyScalar(.30+.65*centerBrightness);},
+  setLineLength(v){lineLength=clamp(Number(v)/100,.7,2.6);},
  setParticleCount(n){rebuildParticles(Number(n));},
  setBloom(on){bloom.enabled=on;},
  screenshot(){
@@ -473,7 +475,13 @@ function getLevels(){
    el.style.height=(5+bins[idx]/255*95)+'%';
   });
  }
- return {bass:clamp(bass*1.5,0,1),mid:clamp(mid*1.7,0,1),high:clamp(high*2.15,0,1),beat};
+ const bands=new Float32Array(96);
+  for(let i=0;i<96;i++){
+    const frequency=55*Math.pow(170,i/95);
+    const idx=Math.min(bins.length-2,Math.max(1,Math.round(frequency/hz)));
+    bands[i]=(bins[idx-1]+bins[idx]+bins[idx+1])/(3*255);
+  }
+  return {bass:clamp(bass*1.5,0,1),mid:clamp(mid*1.7,0,1),high:clamp(high*2.15,0,1),beat,bands};
 }
 getLevels.frame=0;
 window.__musicLevels=getLevels;
@@ -521,8 +529,24 @@ $('fileButton').addEventListener('click',toggleFile);
 $('volume').addEventListener('input',e=>{const n=Number(e.target.value);$('volumeValue').textContent=n+'%';if(master)master.gain.value=n/100;});
 $('shotButton').addEventListener('click',()=>window.__rainbowVisual?.screenshot());
 $('fullButton').addEventListener('click',()=>window.__rainbowVisual?.toggleFullscreen());
+function setVisualOnly(on){
+  document.body.classList.toggle('visualOnly',on);
+  $('exitPure').hidden=!on;
+  if(on){if(!document.fullscreenElement)document.documentElement.requestFullscreen?.().catch(()=>{});}
+  else if(document.fullscreenElement)document.exitFullscreen?.().catch(()=>{});
+}
+$('visualOnlyButton').addEventListener('click',()=>setVisualOnly(true));
+$('exitPure').addEventListener('click',()=>setVisualOnly(false));
+document.addEventListener('keydown',e=>{
+  const tag=document.activeElement?.tagName||'';
+  if(e.key.toLowerCase()==='h'&&!['INPUT','TEXTAREA'].includes(tag))setVisualOnly(!document.body.classList.contains('visualOnly'));
+  if(e.key==='Escape'&&document.body.classList.contains('visualOnly'))setVisualOnly(false);
+});
+document.addEventListener('fullscreenchange',()=>{
+  if(!document.fullscreenElement&&document.body.classList.contains('visualOnly'))setVisualOnly(false);
+});
 $('intensity').addEventListener('input',e=>{const n=e.target.value;window.__rainbowVisual?.setIntensity(n);$('intensityValue').textContent=n+'%';});
- $('centerBrightness').addEventListener('input',e=>{const n=e.target.value;window.__rainbowVisual?.setCenterBrightness(n);$('centerBrightnessValue').textContent=n+'%';});
+ $('lineLength').addEventListener('input',e=>{const n=e.target.value;window.__rainbowVisual?.setLineLength(n);$('lineLengthValue').textContent=n+'%';});
 $('particles').addEventListener('input',e=>{const n=Number(e.target.value);$('particlesValue').textContent=n.toLocaleString();window.__rainbowVisual?.setParticleCount(n);});
 $('bloom').addEventListener('change',e=>window.__rainbowVisual?.setBloom(e.target.checked));
 document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>window.__rainbowVisual?.setParticleMode(b.dataset.mode)));
