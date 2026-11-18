@@ -18,6 +18,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Check inline JavaScript syntax
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          source = Path("index.html").read_text(encoding="utf-8")
+          match = re.search(r'<script type="module">(.*?)</script>', source, re.S)
+          assert match, "Missing browser module"
+          Path("/tmp/soundscape.mjs").write_text(match.group(1), encoding="utf-8")
+          PY
+          node --check /tmp/soundscape.mjs
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
