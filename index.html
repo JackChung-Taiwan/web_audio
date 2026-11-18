@@ -4,8 +4,8 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <meta name="theme-color" content="#090b20"/>
-<meta name="description" content="彩虹節奏宇宙：Three.js 3D 音樂視覺化、YouTube 分頁音訊、六種動態粒子"/>
-<title>彩虹節奏宇宙 V3｜長線條音樂頻譜 + 粒子</title>
+<meta name="description" content="彩虹節奏宇宙：Three.js 3D 音樂視覺化、YouTube 分頁音訊、十二種音樂特效"/>
+<title>彩虹節奏宇宙 V4｜12 種 Three.js 音樂視覺特效</title>
 <style>:root{color-scheme:dark;--pink:#ff54b5;--cyan:#4de6ff;--gold:#ffd46d;--ink:#090b20;--glass:rgba(11,15,39,.81);--border:rgba(201,215,255,.18)}
 *{box-sizing:border-box}html,body{margin:0;width:100%;min-height:100%;font-family:system-ui,-apple-system,'Microsoft JhengHei','Noto Sans TC',sans-serif;color:#fff;background:#070919}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:2px solid var(--cyan);outline-offset:3px}
 #stage{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}#stage:active{cursor:grabbing}
@@ -44,7 +44,7 @@ body.visualOnly #ytCard{opacity:0;visibility:hidden;pointer-events:none}
 <canvas id="stage" aria-label="Three.js 3D 音樂視覺化互動畫面"></canvas>
 <div id="app">
   <header>
-    <div class="brand"><div class="brandIcon" aria-hidden="true">♫</div><div><h1>彩虹節奏宇宙 V3</h1><div class="tagline">THREE.JS · AUDIO REACTIVE UNIVERSE</div></div></div>
+    <div class="brand"><div class="brandIcon" aria-hidden="true">♫</div><div><h1>彩虹節奏宇宙 V4</h1><div class="tagline">THREE.JS · AUDIO REACTIVE UNIVERSE</div></div></div>
     <div class="state glass"><span class="dot" id="stateDot"></span><span id="stateText">等待音樂</span></div>
   </header>
   <section class="center">
@@ -55,7 +55,21 @@ body.visualOnly #ytCard{opacity:0;visibility:hidden;pointer-events:none}
       <div style="display:flex;gap:6px;margin-top:8px"><button id="youtubeLoad" class="btn primary" style="flex:1">▶ 載入 YouTube</button><button id="shareButton" class="btn" title="將瀏覽器選擇的分頁音訊接入音頻分析器">◎ 分享分頁音訊</button></div>
       <div id="youtubeSteps" class="help" hidden>① 點擊影片播放　② 點「分享分頁音訊」　③ 選「Chrome 分頁／目前分頁」並勾選「分享分頁音訊」。未分享時不會假裝根據 YouTube 音頻分析。</div>
       <hr class="sep"/>
-      <div class="sectionHead"><h3>粒子特效</h3><span>6 PARTICLE FX</span></div>
+      <div class="sectionHead"><h3>3D 音樂視覺特效</h3><span>6 AUDIO FX</span></div>
+<div class="grid" role="group" aria-label="選擇 3D 音樂視覺特效">
+<button class="choice" data-fx="tunnel" type="button"><span class="ico">◎</span>雷射隧道</button>
+<button class="choice" data-fx="aurora" type="button"><span class="ico">〰</span>極光絲帶</button>
+<button class="choice selected" data-fx="wave" type="button"><span class="ico">≋</span>霓虹波形</button>
+<button class="choice" data-fx="galaxy" type="button"><span class="ico">✧</span>粒子星河</button>
+<button class="choice" data-fx="fiber" type="button"><span class="ico">╎</span>光纖絲線</button>
+<button class="choice" data-fx="ring" type="button"><span class="ico">◉</span>環形頻譜</button>
+</div>
+<div class="label"><label for="brightness">畫面亮度</label><b id="brightnessValue">70%</b></div>
+<input id="brightness" type="range" min="20" max="130" step="5" value="70" aria-label="調整畫面亮度"/>
+<div class="label"><label for="hue">色彩偏移</label><b id="hueValue">0°</b></div>
+<input id="hue" type="range" min="-180" max="180" step="5" value="0" aria-label="調整粒子與線條色相"/>
+<hr class="sep"/>
+<div class="sectionHead"><h3>經典粒子特效</h3><span>6 CLASSIC FX</span></div>
       <div class="grid">
         <button class="choice selected" data-mode="galaxy" type="button"><span class="ico">✺</span>銀河旋渦</button>
         <button class="choice" data-mode="stars" type="button"><span class="ico">✦</span>流星星空</button>
@@ -103,7 +117,7 @@ body.visualOnly #ytCard{opacity:0;visibility:hidden;pointer-events:none}
 <div id="ytCard" class="ytCard glass" hidden><div class="ytTitle">YouTube 播放器 <button id="youtubeClose" class="xBtn" aria-label="關閉播放器">×</button></div><iframe id="youtubeFrame" class="youtubePlayer" title="YouTube 音樂播放器" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="ytNote">影片可直接播放。若要依據真正的聲音跳動，請按右側「分享分頁音訊」，並在瀏覽器分享視窗勾選音訊。</div></div>
 <div id="notice" role="status" aria-live="polite"></div>
 <div id="noWebGL" hidden>此瀏覽器無法啟動 WebGL。請使用最新版 Chrome / Edge，並開啟硬體加速。</div>
-<div class="footerNote">THREE.JS r187 · WEB AUDIO · GITHUB PAGES READY</div>
+<div class="footerNote">THREE.JS r187 · WEB AUDIO V4 · GITHUB PAGES</div>
 <audio id="audio" crossorigin="anonymous" preload="metadata"></audio>
 <script type="module">import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -111,6 +125,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { createVisualizerFX } from './src/visual-fx.js';
 
 const $ = id => document.getElementById(id);
 const clamp = (v,a,b) => Math.max(a, Math.min(b,v));
@@ -124,12 +139,13 @@ const themes = {
 
 let renderer;
 try {
-  renderer = new THREE.WebGLRenderer({canvas:$('stage'),antialias:true,alpha:false,preserveDrawingBuffer:true,powerPreference:'high-performance'});
+  renderer = new THREE.WebGLRenderer({canvas:$('stage'),antialias:!matchMedia('(pointer: coarse)').matches,alpha:false,preserveDrawingBuffer:true,powerPreference:'high-performance'});
 } catch(e) {
   $('noWebGL').hidden = false;
   throw new Error('WebGL 不可用：'+e.message);
 }
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.7));
+const isMobile=matchMedia('(pointer: coarse)').matches || innerWidth<720;
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, isMobile ? 1.2 : 1.7));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.12;
@@ -166,7 +182,7 @@ for(let layer=0;layer<LINE_LAYERS;layer++){
   g.setAttribute('position',new THREE.BufferAttribute(vertices,3).setUsage(THREE.DynamicDrawUsage));
   const m=new THREE.LineBasicMaterial({color:'#8cedff',transparent:true,opacity:.45,depthWrite:false});
   const wave=new THREE.Line(g,m);wave.frustumCulled=false;world.add(wave);
-  waveLayers.push({vertices,g,m});
+  waveLayers.push({vertices,g,m,wave});
 }
 function recolorLines(theme){
   const palette=[new THREE.Color(theme.main),new THREE.Color(theme.second),new THREE.Color(theme.third)];
@@ -246,12 +262,17 @@ for(let i=0;i<2100;i++){
 backdropGeo.setAttribute('position',new THREE.BufferAttribute(starCoords,3));
 backdropGeo.setAttribute('color',new THREE.BufferAttribute(starCol,3));
 const backdrop=new THREE.Points(backdropGeo,new THREE.PointsMaterial({size:.065,vertexColors:true,transparent:true,opacity:.8,sizeAttenuation:true,depthWrite:false,blending:THREE.AdditiveBlending}));scene.add(backdrop);
+let fxManager=null, activeFX='legacy', hueOffset=0, currentThemeKey='candy', visualBrightness=70;
 let theme=themes.candy;
 function setTheme(key){
- theme=themes[key]||themes.candy;
+ currentThemeKey=key;
+ const sourceTheme=themes[key]||themes.candy;
+ theme={...sourceTheme};
+ for(const k of ['main','second','third'])theme[k]=new THREE.Color(sourceTheme[k]).offsetHSL(hueOffset/360,0,0).getStyle();
  scene.background=new THREE.Color(theme.bg);
  scene.fog=new THREE.FogExp2(theme.bg,.013);
  recolorLines(theme);
+ fxManager?.setTheme(theme);
  $('themeName').textContent=theme.name;
  document.documentElement.style.setProperty('--pink',theme.main);
  document.documentElement.style.setProperty('--cyan',theme.second);
@@ -259,10 +280,30 @@ function setTheme(key){
  document.querySelectorAll('[data-theme]').forEach(b=>b.classList.toggle('selected',b.dataset.theme===key));
 }
 setTheme('candy');
-function setParticleMode(m){particleMode=m;document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('selected',b.dataset.mode===m));}
+function setParticleMode(m){
+ particleMode=m;activeFX='legacy';
+ bars.visible=true;points.visible=true;
+ for(const w of waveLayers)w.wave.visible=true;
+ fxManager?.setMode(null);
+ document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('selected',b.dataset.mode===m));
+ document.querySelectorAll('[data-fx]').forEach(b=>b.classList.remove('selected'));
+}
 setParticleMode('galaxy');
+fxManager=createVisualizerFX(THREE,world,theme);
+function setEffect(key){
+ activeFX=key;
+ fxManager.setMode(key);
+ bars.visible=false;points.visible=false;
+ for(const w of waveLayers)w.wave.visible=false;
+ document.querySelectorAll('[data-mode]').forEach(b=>b.classList.remove('selected'));
+ document.querySelectorAll('[data-fx]').forEach(b=>b.classList.toggle('selected',b.dataset.fx===key));
+}
+setEffect('wave');
+if(isMobile){bloom.enabled=false;$('bloom').checked=false;}
+fxManager.setDensity(Number($('particles').value));
+fxManager.setBrightness(.7);
 let intensity=1, smoothBass=0,smoothMid=0,smoothHigh=0,pulse=0,beatFlash=0,lastTime=0,frame=0;
-function resize(){const w=innerWidth,h=innerHeight;renderer.setSize(w,h,false);composer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
+function resize(){const w=innerWidth,h=innerHeight;renderer.setPixelRatio(Math.min(devicePixelRatio||1,isMobile?1.2:1.7));renderer.setSize(w,h,false);composer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();}
 window.addEventListener('resize',resize,{passive:true});resize();
 function animateParticles(t,bass,mid,high){
  const b=clamp(bass,0,1), amplitude=1+intensity*(b*.45+beatFlash*.24);
@@ -312,7 +353,11 @@ function animateParticles(t,bass,mid,high){
  particleMat.uniforms.uSpark.value=1+high*2+beatFlash*1.3;
 }
 const getLevels=()=>window.__musicLevels?.()||{bass:0,mid:0,high:0,beat:false,bands:[]};
+let lastRendered=0;
 function tick(ms){
+ if(document.hidden){lastTime=ms*.001;requestAnimationFrame(tick);return;}
+ if(isMobile && ms-lastRendered<32){requestAnimationFrame(tick);return;}
+ lastRendered=ms;
  const t=ms*.001,dt=Math.min(.08,Math.max(.001,t-lastTime));lastTime=t;frame++;
  const l=getLevels();const attack=.25;
  smoothBass=lerp(smoothBass,l.bass,attack);smoothMid=lerp(smoothMid,l.mid,.24);smoothHigh=lerp(smoothHigh,l.high,.2);
@@ -320,20 +365,31 @@ function tick(ms){
  if(l.beat)beatFlash=1;
  beatFlash=Math.max(0,beatFlash-dt*2.8);
  const bass=smoothBass*intensity,mid=smoothMid*intensity,high=smoothHigh*intensity;
- animateLines(t,bass,mid,high,beatFlash,l.bands);
- bloom.strength=.26+bass*.32+beatFlash*.1;
+ if(activeFX==='legacy'){
+  animateLines(t,bass,mid,high,beatFlash,l.bands);
+  animateParticles(t,bass,mid,high);
+ }else fxManager.update(t,{bass,mid,high,beat:beatFlash,bands:l.bands});
+ bloom.strength=(.13+bass*.19+beatFlash*.045)*visualBrightness/70;
  world.rotation.y=t*.025;
  backdrop.rotation.y=t*.006;
- animateParticles(t,bass,mid,high);
  controls.update();composer.render();
  requestAnimationFrame(tick);
 }
 requestAnimationFrame(tick);
 window.__rainbowVisual={
- setTheme,setParticleMode,
+ setTheme,setParticleMode,setEffect,
+ setBrightness(v){
+  visualBrightness=clamp(Number(v),20,130);
+  renderer.toneMappingExposure=.27+visualBrightness/140;
+  backdrop.material.opacity=.68*visualBrightness/100;
+  fxManager.setBrightness(visualBrightness/100);
+  barMaterial.opacity=.82*visualBrightness/100;
+  for(const w of waveLayers)w.m.opacity=.45*visualBrightness/100;
+ },
+ setHue(v){hueOffset=clamp(Number(v),-180,180);setTheme(currentThemeKey);},
  setIntensity(v){intensity=Number(v)/100;},
   setLineLength(v){lineLength=clamp(Number(v)/100,.7,2.6);},
- setParticleCount(n){rebuildParticles(Number(n));},
+ setParticleCount(n){rebuildParticles(Math.min(Number(n),isMobile?1600:5000));fxManager.setDensity(Number(n));},
  setBloom(on){bloom.enabled=on;},
  screenshot(){
   try{const a=document.createElement('a');a.download=`rainbow-beat-${Date.now()}.png`;a.href=renderer.domElement.toDataURL('image/png');a.click();}
@@ -341,6 +397,7 @@ window.__rainbowVisual={
  },
  toggleFullscreen(){if(!document.fullscreenElement){document.documentElement.requestFullscreen?.();}else document.exitFullscreen?.();}
 };
+window.__rainbowVisual.setBrightness(70);
 </script>
 <script>const $ = id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -543,6 +600,9 @@ $('intensity').addEventListener('input',e=>{const n=e.target.value;window.__rain
  $('lineLength').addEventListener('input',e=>{const n=e.target.value;window.__rainbowVisual?.setLineLength(n);$('lineLengthValue').textContent=n+'%';});
 $('particles').addEventListener('input',e=>{const n=Number(e.target.value);$('particlesValue').textContent=n.toLocaleString();window.__rainbowVisual?.setParticleCount(n);});
 $('bloom').addEventListener('change',e=>window.__rainbowVisual?.setBloom(e.target.checked));
+$('brightness').addEventListener('input',e=>{const n=Number(e.target.value);$('brightnessValue').textContent=n+'%';window.__rainbowVisual?.setBrightness(n);});
+$('hue').addEventListener('input',e=>{const n=Number(e.target.value);$('hueValue').textContent=n+'°';window.__rainbowVisual?.setHue(n);});
+document.querySelectorAll('[data-fx]').forEach(b=>b.addEventListener('click',()=>window.__rainbowVisual?.setEffect(b.dataset.fx)));
 document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>window.__rainbowVisual?.setParticleMode(b.dataset.mode)));
 document.querySelectorAll('[data-theme]').forEach(b=>b.addEventListener('click',()=>window.__rainbowVisual?.setTheme(b.dataset.theme)));
 audio.addEventListener('ended',()=>{$('fileButton').textContent='▶ 播放檔案';status('音樂已播放結束');});
