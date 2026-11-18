@@ -350,7 +350,7 @@ function animateParticles(t,bass,mid,high){
  geometry.attributes.position.needsUpdate=true;
  if(frame%3===0)geometry.attributes.aColor.needsUpdate=true;
  particleMat.uniforms.uScale.value=1+clamp(high*.7+beatFlash*.5,0,1);
- particleMat.uniforms.uSpark.value=1+high*2+beatFlash*1.3;
+ particleMat.uniforms.uSpark.value=(.6+high*2+beatFlash*1.3)*visualBrightness/100;
 }
 const getLevels=()=>window.__musicLevels?.()||{bass:0,mid:0,high:0,beat:false,bands:[]};
 let lastRendered=0;
@@ -372,7 +372,7 @@ function tick(ms){
  bloom.strength=(.13+bass*.19+beatFlash*.045)*visualBrightness/70;
  world.rotation.y=t*.025;
  backdrop.rotation.y=t*.006;
- controls.update();composer.render();
+ controls.update();if(bloom.enabled)composer.render();else renderer.render(scene,camera);
  requestAnimationFrame(tick);
 }
 requestAnimationFrame(tick);
