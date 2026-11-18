@@ -1,22 +1,17 @@
 {
-  "name": "web-audio-3d-lab",
+  "name": "rainbow-beat-universe",
   "private": true,
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "tsc --noEmit && vite build",
+    "build": "vite build",
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
-    "@breezystack/lamejs": "^1.2.7",
-    "@ffmpeg/ffmpeg": "^0.12.15",
-    "@ffmpeg/util": "^0.12.2",
-    "three": "^0.180.0"
+    "three": "0.187.0"
   },
   "devDependencies": {
-    "@types/three": "^0.180.0",
-    "typescript": "^5.9.3",
     "vite": "^7.2.2"
   }
 }
